@@ -8,6 +8,8 @@ class Settings:
     cell_size = 21
     qstruct = 20
     delay = 125
+    timer = 0
+    appleseaten = 0
 
 class Operations:
     def coord(num): # генерация случайного числа
@@ -82,12 +84,29 @@ class Apples:
         apple.hideturtle()
         apples[0] = apple
 
+    def gensuperapple(): # генерация особого яблока
+        superapple = Turtle()
+        superapple.speed(0)
+        superapple.shape('circle')
+        superapple.shapesize(1)
+        superapple.color('#8b00ff')
+        superapple.penup()
+        superapple.hideturtle()
+        apples[1] = superapple
+
     def regenapples(): # изменение положения яблока
         xy = Operations.checkcoord()
         x = xy[0]
         y = xy[1]
         apples[0].goto(x, y)
         apples[0].showturtle()
+
+    def regensuperapples(): # изменение положения особого яблока
+        xy = Operations.checkcoord()
+        x = xy[0]
+        y = xy[1]
+        apples[1].goto(x, y)
+        apples[1].showturtle()
 
 class Snake: 
     def genhead(): # генерация головы
@@ -157,12 +176,13 @@ class Game:
         screen = scr
 
         structs = []
-        apples = ['']
+        apples = ['', '']
         snake = []
 
         Field.genfield()
         Field.genstruct()
         Apples.genapple()
+        Apples.gensuperapple()
         Apples.regenapples()
         Snake.genhead()
         screen.ontimer(Game.nextframe, Settings.delay)
@@ -182,6 +202,9 @@ class Game:
             y = snake[0].ycor()
             snake[1].goto(x, y)
 
+        if time.perf_counter() - Settings.timer > Settings.delay / 100 * 4 and apples[1].isvisible(): # особое яблоко исчезает через определённое время, если игрок его не съедает
+            apples[1].hideturtle()
+
         Moving.move()
 
         screen.ontimer(Game.nextframe, Settings.delay) # повторение действия   
@@ -191,6 +214,7 @@ class Game:
 
         # првоерка на столкновение с границей поля
         if (snake[0].xcor() == (Settings.width// 2 // 21 - 1) * 21 and snake[0].direction == "right") or (snake[0].xcor() == (-Settings.width// 2 // 21 + 1) * 21 and snake[0].direction == "left") or (snake[0].ycor() == (Settings.height// 2 // 21 - 1) * 21 and snake[0].direction == "up") or (snake[0].ycor() == (-Settings.height// 2 // 21 + 1) * 21 and snake[0].direction == "down"):
+            Settings.appleseaten = 0
             time.sleep(1)
             snake[0].goto(0, 0)
             snake[0].direction = "Stop"
@@ -202,6 +226,7 @@ class Game:
         # проверка на столкновение с стеной
         for struct in structs:
             if (snake[0].xcor() == struct.pos()[0] - Settings.cell_size and snake[0].ycor() == struct.pos()[1] and snake[0].direction == "right") or (snake[0].xcor() == struct.pos()[0] + Settings.cell_size and snake[0].ycor() == struct.pos()[1] and snake[0].direction == "left") or (snake[0].ycor() == struct.pos()[1] - Settings.cell_size and snake[0].xcor() == struct.pos()[0] and snake[0].direction == "up") or (snake[0].ycor() == struct.pos()[1] + Settings.cell_size and snake[0].xcor() == struct.pos()[0] and snake[0].direction == "down"):
+                Settings.appleseaten = 0
                 time.sleep(1)
                 snake[0].goto(0, 0)
                 snake[0].direction = "stop"
@@ -213,6 +238,7 @@ class Game:
         # проверка на столкновение с телом змеи
         for body in snake:
             if (snake[0].xcor() == body.pos()[0] - Settings.cell_size and snake[0].ycor() == body.pos()[1] and snake[0].direction == "right") or (snake[0].xcor() == body.pos()[0] + Settings.cell_size and snake[0].ycor() == body.pos()[1] and snake[0].direction == "left") or (snake[0].ycor() == body.pos()[1] - Settings.cell_size and snake[0].xcor() == body.pos()[0] and snake[0].direction == "up") or (snake[0].ycor() == body.pos()[1] + Settings.cell_size and snake[0].xcor() == body.pos()[0] and snake[0].direction == "down"):
+                Settings.appleseaten = 0
                 time.sleep(1)
                 snake[0].goto(0, 0)
                 snake[0].direction = "stop"
@@ -224,6 +250,18 @@ class Game:
     # поедание яблок
     def consumption():
         if apples[0] != "" and snake[0].distance(apples[0]) < Settings.cell_size: # проверка на расстояние между головой змеи и яблоком
+            Settings.appleseaten += 1
             apples[0].hideturtle()
             Apples.regenapples()
             Snake.gensnake()
+
+        if apples[1] != "" and snake[0].distance(apples[1]) < Settings.cell_size and apples[1].isvisible(): # проверка на расстояние между головой змеи и особым яблоком и условия видимости особого яблока
+            apples[1].hideturtle()
+            Apples.regensuperapples()
+            for _ in range(3):
+                Snake.gensnake()
+
+        if Settings.appleseaten % 5 == 0 and Settings.appleseaten != 0: # условие появления особого яблока
+            Settings.appleseaten = 0
+            apples[1].showturtle()
+            Settings.timer = time.perf_counter()
