@@ -1,4 +1,4 @@
-import Game
+import Game.Game as Game
 import Screen
 from Settings import Settings
 from time import sleep
@@ -13,9 +13,8 @@ def clearall():
 def getclickcoords(x, y):
     if x > -130 and x < 130 and y > 15 and y < 75:
         if Screen.screen_now == "menu":
-            clearall()
             Screen.SnakeScreen().get_screen(fieldsize=Settings.fieldsize, type="game")
-            Game.Game.game(Settings.fieldsize, Settings.delay, Settings.qstruct, Settings.superapple, Screen.SnakeScreen.screen)
+            Game.Game.game(Settings.fieldsize, Settings.cell_size, Settings.delay, Settings.qstruct, Settings.superapple, Screen.SnakeScreen.screen)
 
     if ((x > -45 and x < 45 and y > -105 and y < -15) or (x > -45 and x < 45 and y > -85 and y < -35)):
         if Screen.screen_now == "menu":
@@ -93,16 +92,21 @@ def getclickcoords(x, y):
                 Settings.superapple = True
             Screen.SnakeScreen().get_screen(type="settings")
 
-try:
-    if __name__ == "__main__":
-        Screen.SnakeScreen().get_screen(type="menu")
-        Screen.SnakeScreen().screen.listen()
-        Screen.SnakeScreen().screen.onscreenclick(getclickcoords)
-        Screen.SnakeScreen().screen.onkeypress(Game.Moving.goup, "Up")
-        Screen.SnakeScreen().screen.onkeypress(Game.Moving.goleft, "Left")
-        Screen.SnakeScreen().screen.onkeypress(Game.Moving.godown, "Down")
-        Screen.SnakeScreen().screen.onkeypress(Game.Moving.goright, "Right")
-        while True:
-            Screen.SnakeScreen().screen.update()
-except:
-    pass
+def info():
+    for turtle in Screen.SnakeScreen().screen.turtles():
+        print(turtle.name)
+    print("-"*10)
+
+# try:
+if __name__ == "__main__":
+    Screen.SnakeScreen().get_screen(type="menu")
+    Screen.SnakeScreen().screen.listen()
+    Screen.SnakeScreen().screen.onscreenclick(getclickcoords)
+    Screen.SnakeScreen().screen.onkeypress(Game.Moving.goup, "Up")
+    Screen.SnakeScreen().screen.onkeypress(Game.Moving.goleft, "Left")
+    Screen.SnakeScreen().screen.onkeypress(Game.Moving.godown, "Down")
+    Screen.SnakeScreen().screen.onkeypress(Game.Moving.goright, "Right")
+    Screen.SnakeScreen().screen.onkeypress(info, "i")
+    Screen.SnakeScreen().screen.mainloop()
+# except:
+#     pass
